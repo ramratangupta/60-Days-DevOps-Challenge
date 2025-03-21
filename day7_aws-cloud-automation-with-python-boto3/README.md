@@ -1,9 +1,13 @@
-#https://www.learnxops.com/p/aws-cloud-automation-with-python-boto3
+
+https://www.learnxops.com/p/aws-cloud-automation-with-python-boto3
+
+```shell
 python3 -m venv venv
 . venv/bin/activate
 pip install boto3
 pip install boto3[crt]
 pip freeze > requirements.txt
+```
 🔹 Challenge 1: Write a Python script that provisions an EC2 instance, a new security group, and a key pair. The same script should connect to ec2 after creation to check that everything is working fine. (The key pair should be generated via the Python script and used for the EC2 SSH connection.)
 code provision_ec2.py
 ```python
