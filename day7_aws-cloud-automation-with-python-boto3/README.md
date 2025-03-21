@@ -6,7 +6,7 @@ pip install boto3[crt]
 pip freeze > requirements.txt
 🔹 Challenge 1: Write a Python script that provisions an EC2 instance, a new security group, and a key pair. The same script should connect to ec2 after creation to check that everything is working fine. (The key pair should be generated via the Python script and used for the EC2 SSH connection.)
 code provision_ec2.py
-```
+```python
 import boto3
 import os
 import time
@@ -87,7 +87,7 @@ check_ec2_via_ssh(IP,SSHKEY)
 
 🔹 Challenge 2: Automate S3 lifecycle policies using boto3 (e.g., move files to Glacier after 30 days).
 code apply_lifecycle_to_s3.py
-```
+```python
 import boto3
 from datetime import datetime
 s3 = boto3.client("s3","us-east-1")
@@ -137,7 +137,7 @@ if Check ==True:
 🔹 Challenge 3: Create a script that starts or stops all EC2 instances in a specific AWS region.
 
 code ec2_start_stop.py
-```
+```python
 import boto3
 region = input("Please input region to run : ")
 #region = "ap-south-1"
@@ -156,7 +156,7 @@ for Reservations in instances["Reservations"]:
 🔹 Challenge 4: Write a Python program that checks for unused IAM users and disables them.
 
 code check_iam_users.py
-```
+```python
 import boto3
 from datetime import datetime, timezone
 import json
@@ -250,7 +250,7 @@ if __name__ == "__main__":
 🔹 Challenge 5: Implement a log monitoring system that scans EC2 instances' /var/log for error messages and sends alerts via email (AWS SES) and Slack.
 
 code ec2_log_monitoring.py
-```
+```python
 import boto3
 import subprocess
 import requests
@@ -319,7 +319,7 @@ if __name__ == "__main__":
 🔹 Challenge 6: Automate DNS record updates in AWS Route 53 using Python.
 code update_route53.py
 If you do not have domain you can create Private hosted zone
-```
+```python
 import boto3
 route53 = boto3.client("route53")
 from dotenv import load_dotenv
@@ -360,7 +360,7 @@ After R&D please delete this hosted zone.
 
 code trigger_lambda.py
 
-```
+```python
 import boto3
 import json
 
@@ -399,3 +399,66 @@ if __name__ == "__main__":
 ✅ Lambda response: {'message': 'Hello from Python!', 'call_from_lambda': 'True'}
 
 🔹 Challenge 8: Use boto3 to fetch AWS billing data, and generate a cost analysis report in PDF format
+```python
+import boto3
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from datetime import datetime, timedelta
+
+# AWS Configuration
+AWS_REGION = "us-east-1"  # Change as needed
+COST_EXPLORER_CLIENT = boto3.client("ce", region_name=AWS_REGION)
+
+# Time Range (Last 7 Days)
+END_DATE = datetime.utcnow().date()
+START_DATE = END_DATE - timedelta(days=7)
+
+def get_billing_data():
+    """Fetch AWS billing data from Cost Explorer."""
+    print("📊 Fetching AWS cost data...")
+
+    try:
+        response = COST_EXPLORER_CLIENT.get_cost_and_usage(
+            TimePeriod={"Start": START_DATE.strftime("%Y-%m-%d"), "End": END_DATE.strftime("%Y-%m-%d")},
+            Granularity="DAILY",
+            Metrics=["UnblendedCost"]
+        )
+        cost_data = response["ResultsByTime"]
+        return cost_data
+
+    except Exception as e:
+        print(f"❌ Failed to fetch billing data: {e}")
+        return []
+
+def generate_pdf_report(cost_data):
+    """Generates a PDF report from billing data."""
+    report_filename = f"AWS_Cost_Report_{END_DATE}.pdf"
+    print(f"📄 Generating PDF report: {report_filename}")
+
+    c = canvas.Canvas(report_filename, pagesize=letter)
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(200, 750, "AWS Billing Report")
+    c.setFont("Helvetica", 12)
+    c.drawString(200, 730, f"Time Period: {START_DATE} - {END_DATE}")
+
+    y_position = 700
+    total_cost = 0
+
+    for entry in cost_data:
+        date = entry["TimePeriod"]["Start"]
+        cost = float(entry["Total"]["UnblendedCost"]["Amount"])
+        total_cost += cost
+        c.drawString(100, y_position, f"{date}: ${cost:.2f}")
+        y_position -= 20
+
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(100, y_position - 20, f"Total AWS Cost: ${total_cost:.2f}")
+
+    c.save()
+    print(f"✅ PDF report saved as {report_filename}")
+
+if __name__ == "__main__":
+    cost_data = get_billing_data()
+    if cost_data:
+        generate_pdf_report(cost_data)
+```
