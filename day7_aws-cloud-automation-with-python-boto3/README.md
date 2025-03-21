@@ -1,3 +1,4 @@
+#https://www.learnxops.com/p/aws-cloud-automation-with-python-boto3
 python3 -m venv venv
 . venv/bin/activate
 pip install boto3
@@ -354,3 +355,47 @@ except Exception as e:
 ```
 ![](route53.png)
 After R&D please delete this hosted zone.
+
+🔹 Challenge 7: Write a script that triggers an AWS Lambda function using boto3.
+
+code trigger_lambda.py
+
+```
+import boto3
+import json
+
+# AWS Configuration
+AWS_REGION = "us-east-1" 
+LAMBDA_FUNCTION_NAME = "send_email" 
+
+# Initialize the AWS Lambda client
+lambda_client = boto3.client("lambda", region_name=AWS_REGION)
+
+def invoke_lambda(payload={}):
+    """Invokes the AWS Lambda function with an optional JSON payload."""
+    print(f"🚀 Triggering Lambda function: {LAMBDA_FUNCTION_NAME}")
+    
+    try:
+        response = lambda_client.invoke(
+            FunctionName=LAMBDA_FUNCTION_NAME,
+            InvocationType="RequestResponse",  # Use "Event" for async invocation
+            Payload=json.dumps(payload)
+        )
+        
+        # Read response
+        response_payload = json.loads(response["Payload"].read().decode())
+        print(f"✅ Lambda response: {response_payload}")
+    
+    except Exception as e:
+        print(f"❌ Failed to invoke Lambda: {e}")
+
+if __name__ == "__main__":
+    # Example payload
+    payload = {"message": "Hello from Python!"}
+    
+    invoke_lambda(payload)
+```
+🚀 Triggering Lambda function: send_email
+✅ Lambda response: {'message': 'Hello from Python!', 'call_from_lambda': 'True'}
+
+🔹 Challenge 8: Use boto3 to fetch AWS billing data, and generate a cost analysis report in PDF format
